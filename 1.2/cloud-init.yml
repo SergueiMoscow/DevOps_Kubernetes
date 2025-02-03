@@ -1,0 +1,70 @@
+#cloud-config
+datasource:
+  Ec2:
+    strict_id: false
+ssh_pwauth: no
+
+users:
+- name: admin-user
+  sudo: 'ALL=(ALL) NOPASSWD:ALL'
+  shell: /bin/bash
+  ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCbKD10PXNVNnP2r5qO4vC3RDjdqOwx68Wx5I5mvIOHBcL6EboCUuGDKfUVIzmDehY8I+77U8NyKQ9UxiagMbcDdu4GE/Lk//MMqE8C7O04iTtBzHwkON9KUygD+KVz8hq01vRZL79UjUtPYENembsKQgb1iQMptRwSTUHINaR5e9+2myRPoX3jAL59rnNZSA642dxslvNhU5yehNTMOHyxsZHzHXh86LL6XRGH30Nb1ZXfstjwvbxjQXfBHfpHbegPKG46apKMW8OCqIyEL0sNqBMeDbYF2feAuBildfuO+keDk6jq1yTmal3cOhpLQ6Ug6Oh++Zj9Oip85eoL28Uxyy8/6m/Qg35rRSqKYt2zAOZCOdBWvKjrJIlc86FwUzctbMOkyZS/QWFXJalGeySGunQwZC5J/pJzknmWDxBTmxrKRc3N2/SMauSFdhTCTZFVTSXvha32Eg2ggmy8it2Qgj/KC+UpJci4BJgXQOUbsOCtkvLOFZVaULI5xD76vNuHY2mY8GdVCP3rg7TD6nnERxKyQwbkCveJT5Qpxy1Y4gaezpu9p4PQuO5nib1rOc6fR8WaRkzH2EEL0MazCkcyMMSeccakOhedyhdS5KoYxtvTurm8HOvUyMm7azvIP9HQdVzIoW1XHEnMU/drF8zF2kZTCRq6voa7+6nLi5S45Q== sergey@sergey-devops
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIACHzbsALfp1KSlI9kt1kvEqkKTs/FqlKCAW4rRuOqv4 sergey@sergey-devops
+
+package_update: true
+package_upgrade: true
+
+runcmd:
+  # Установка MicroK8s
+  - sudo snap install microk8s --classic --channel=1.27/stable
+  - sudo microk8s status --wait-ready
+
+  # Включение необходимых модулей
+  - sudo microk8s enable dashboard dns registry ingress
+
+  # Генерация конфигурационного файла для kubectl
+  - sudo microk8s config > ~/.kube/config
+  - sudo chown -R $USER:$USER ~/.kube
+
+  # Получение внешнего IP-адреса
+  - EXTERNAL_IP=$(curl -s ifconfig.me)
+
+  # Настройка сертификата для внешнего IP
+  - sudo sed -i "s/\(.*\)--bind-address=.*/\1--bind-address=$EXTERNAL_IP/" /var/snap/microk8s/current/args/kube-apiserver
+  - sudo systemctl restart snap.microk8s.daemon-apiserver
+
+  # Установка Kubernetes Dashboard
+  - sudo microk8s kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+
+  # Создание сервисного аккаунта и роли для доступа к Dashboard
+  - sudo microk8s kubectl apply -f - <<EOF
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: admin-user
+      namespace: kubernetes-dashboard
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: admin-user
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: cluster-admin
+    subjects:
+    - kind: ServiceAccount
+      name: admin-user
+      namespace: kubernetes-dashboard
+    EOF
+
+  # Получение токена для доступа к Dashboard
+  - TOKEN=$(sudo microk8s kubectl -n kubernetes-dashboard create token admin-user)
+  - echo "Token for Kubernetes Dashboard: $TOKEN" > ~/dashboard-token.txt
+
+  # Вывод информации о подключении
+  - echo "MicroK8s установлен и настроен."
+  - echo "Для подключения к Kubernetes Dashboard используйте следующий токен:"
+  - cat ~/dashboard-token.txt
+  - echo "Конфигурационный файл для kubectl находится в ~/.kube/config"

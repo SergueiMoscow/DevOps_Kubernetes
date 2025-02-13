@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-svc
+  namespace: default
+spec:
+  ports:
+  - name: nginx-port
+    port: 80
+    targetPort: 80
+    protocol: TCP
+    nodePort: 30080
+    
+  - name: multitool
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+    nodePort: 30081
+  selector:
+    app: netology-app
+  type: NodePort

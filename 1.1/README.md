@@ -96,7 +96,7 @@ kubectl create namespace kubernetes-dashboard
 ```bash
 kubectl get nodes
 ```
-![get nodes](image10.png)
+![get nodes](images/image10.png)
 
 Проверяем pod:
 ```bash
@@ -108,7 +108,7 @@ kubectl get pods -n kube-system -l k8s-app=kubernetes-dashboard
 ```bash
 kubectl port-forward -n kube-system pod/kubernetes-dashboard-7d869bcd96-mrn5h 8443:8443
 ```
-![port-forward](image12.png)
+![port-forward](images/image12.png)
 
 Проверяем в браузере:
-![browser](image13.png)
+![browser](images/image13.png)

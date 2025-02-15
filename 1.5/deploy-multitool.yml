@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multitool-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: multitool-app
+  template:
+    metadata:
+      labels:
+        app: multitool-app
+    spec:
+      containers:
+      - name: multitool-container
+        image: wbitt/network-multitool:alpine-extra
+        ports:
+        - containerPort: 80
+        env:
+        - name: HTTP_PORT
+          value: "80"

@@ -102,7 +102,7 @@ kubectl get nodes
 ```bash
 kubectl get pods -n kube-system -l k8s-app=kubernetes-dashboard
 ```
-![get pods](image11.png)
+![get pods](images/image11.png)
 
 Пробрасываем порт:
 ```bash

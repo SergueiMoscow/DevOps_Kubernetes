@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: multitool-daemonset
+  labels:
+    app: multitool
+spec:
+  selector:
+    matchLabels:
+      app: multitool
+  template:
+    metadata:
+      labels:
+        app: multitool
+    spec:
+      containers:
+      - name: multitool
+        image: wbitt/network-multitool:alpine-extra
+        # Команда для непрерывного выполнения, чтобы контейнер оставался активным
+        command: ["/bin/sh", "-c", "while true; do sleep 3600; done"]
+        volumeMounts:
+        - name: syslog
+          mountPath: /var/log/syslog
+          subPath: syslog
+      volumes:
+      - name: syslog
+        hostPath:
+          path: /var/log
+          type: Directory

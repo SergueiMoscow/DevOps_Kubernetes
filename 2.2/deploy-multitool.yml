@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-multitool
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-multitool
+  template:
+    metadata:
+      labels:
+        app: nfs-multitool
+    spec:
+      containers:
+      - name: multitool
+        image: wbitt/network-multitool:alpine-extra
+        command: ["/bin/sh", "-c", "while true; do echo $(date) >> /mnt/data/shared.txt; sleep 5; done"]
+        volumeMounts:
+        - name: nfs-volume
+          mountPath: /mnt/data
+      volumes:
+      - name: nfs-volume
+        persistentVolumeClaim:
+          claimName: my-pvc

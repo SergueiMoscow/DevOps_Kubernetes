@@ -1,3 +1,5 @@
 /dashboard.crt
 /dashboard.key
 backup/
+*.crt
+*.key

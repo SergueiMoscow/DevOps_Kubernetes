@@ -1,0 +1,13 @@
+frontend:
+  replicaCount: 2
+  image:
+    repository: nginx
+    tag: "latest"
+
+backend:
+  replicaCount: 2
+  image:
+    repository: wbitt/network-multitool
+    tag: alpine-extra
+  containerPort: 8080
+  HTTP_PORT: "8080"

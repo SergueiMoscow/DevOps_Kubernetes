@@ -44,9 +44,9 @@ sudo systemctl enable --now kubelet
 - Инициализируем кластер, прописывая наши значения:
 ```bash
 sudo kubeadm init \
---apiserver-advertise-address=10.130.0.19 \
+--apiserver-advertise-address=10.130.0.16 \
 --pod-network-cidr 10.244.0.0/16 \
---apiserver-cert-extra-sans=158.160.144.244
+--apiserver-cert-extra-sans=84.201.171.191
 ```
 
 - При сбое запустить одной командой:
@@ -85,6 +85,12 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
+### Устанавливаем сетевой плагин
+```bash
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+```
+
+
 ### Подключаем новые ноды
 Создаём новые виртуальные машины для worker.
 ![workers](images/image02.png)
@@ -94,6 +100,6 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 На каждой ноде выполняем  kubeadm join, который получили при установке мастер ноды
 
 Проверяем подключенные ноды:  
-![nodes](images/image03.png)
+![nodes](images/image04.png)
 
 
